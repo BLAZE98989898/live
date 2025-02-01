@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Ensure the VIDEO_URL and STREAM_KEY are set
+# Ensure VIDEO_URL and STREAM_KEY are set
 if [ -z "$VIDEO_URL" ]; then
   echo "Error: VIDEO_URL is not set."
   exit 1
@@ -11,32 +11,45 @@ if [ -z "$STREAM_KEY" ]; then
   exit 1
 fi
 
-# Download the best video and audio streams separately
+# Download video and audio separately
 echo "Downloading video and audio from YouTube..."
-yt-dlp --cookies /app/cookies.txt -f bestvideo+bestaudio --merge-output-format mp4 -o "/app/video.mp4" "$VIDEO_URL"
+yt-dlp --cookies /app/cookies.txt -f bestvideo -o "/app/video.%(ext)s" "$VIDEO_URL"
+yt-dlp --cookies /app/cookies.txt -f bestaudio -o "/app/audio.%(ext)s" "$VIDEO_URL"
 
-# Wait until video is downloaded
+# Wait for downloads
 sleep 5
 
-# Check if the video file was downloaded
-if [ ! -f /app/video.mp4 ]; then
-  echo "Error: Failed to download video."
+# Get file names
+VIDEO_FILE=$(ls /app/video.* 2>/dev/null)
+AUDIO_FILE=$(ls /app/audio.* 2>/dev/null)
+
+# Check if both files exist
+if [ -z "$VIDEO_FILE" ] || [ -z "$AUDIO_FILE" ]; then
+  echo "Error: Failed to download video or audio."
   exit 1
 fi
 
-# Convert to vertical format and fix moov atom issue
-echo "Converting video to vertical format..."
-ffmpeg -i /app/video.mp4 -vf "scale=720:1280,format=yuv420p" \
--c:v libx264 -preset fast -b:v 2500k -c:a aac -b:a 128k \
--movflags +faststart -y /app/final_video.mp4
+# Merge video and audio correctly
+echo "Merging video and audio..."
+ffmpeg -i "$VIDEO_FILE" -i "$AUDIO_FILE" -c:v libx264 -preset fast -b:v 2500k -c:a aac -b:a 128k -movflags +faststart -y /app/video.mp4
 
-# Check if the final video exists
+# Check if the final video is created
+if [ ! -f /app/video.mp4 ]; then
+  echo "Error: Failed to merge video and audio."
+  exit 1
+fi
+
+# Convert to vertical format
+echo "Converting video to vertical format..."
+ffmpeg -i /app/video.mp4 -vf "scale=720:1280,format=yuv420p" -c:v libx264 -preset fast -b:v 2500k -c:a aac -b:a 128k -movflags +faststart -y /app/final_video.mp4
+
+# Check if final file exists
 if [ ! -f /app/final_video.mp4 ]; then
   echo "Error: Failed to process video."
   exit 1
 fi
 
-# Start streaming to YouTube
+# Start streaming
 echo "Starting the stream to YouTube..."
 ffmpeg -re -stream_loop -1 -i /app/final_video.mp4 -c:v libx264 -b:v 2500k -c:a aac -b:a 128k -f flv "rtmp://a.rtmp.youtube.com/live2/$STREAM_KEY"
 
