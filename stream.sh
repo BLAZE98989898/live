@@ -30,7 +30,9 @@ fi
 
 # Merge video and audio while converting to vertical format
 echo "Merging video and audio into a single file with vertical resolution..."
-ffmpeg -i "$VIDEO_FILE" -i "$AUDIO_FILE" -vf "scale=720:1280,format=yuv420p" -c:v libx264 -preset veryfast -b:v 2500k -c:a aac -b:a 128k -y /app/video.mp4
+ffmpeg -i "$VIDEO_FILE" -i "$AUDIO_FILE" -vf "scale=720:1280,format=yuv420p" \
+-c:v libx264 -preset veryfast -b:v 2500k -c:a aac -b:a 128k \
+-movflags +faststart -y /app/video.mp4
 
 # Check if the merged file exists
 if [ ! -f /app/video.mp4 ]; then
@@ -40,6 +42,8 @@ fi
 
 # Start streaming to YouTube in vertical mode
 echo "Starting the stream to YouTube in vertical format..."
-ffmpeg -re -stream_loop -1 -i /app/video.mp4 -vf "scale=720:1280,format=yuv420p" -c:v libx264 -preset veryfast -b:v 2500k -c:a aac -b:a 128k -f flv "rtmp://a.rtmp.youtube.com/live2/$STREAM_KEY"
+ffmpeg -re -stream_loop -1 -i /app/video.mp4 -vf "scale=720:1280,format=yuv420p" \
+-c:v libx264 -preset veryfast -b:v 2500k -c:a aac -b:a 128k \
+-f flv "rtmp://a.rtmp.youtube.com/live2/$STREAM_KEY"
 
 echo "Stream ended."
