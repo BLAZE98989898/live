@@ -3,7 +3,7 @@ FROM ubuntu:20.04
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
-ENV VIDEO_URL="https://www.youtube.com/watch?v=uaO6X5D2uc4"  
+ENV VIDEO_URL="https://www.youtube.com/watch?v=Ynjc1EcRExk"  
 ENV STREAM_KEY="3fm4-qt4q-79um-da2g-2xty" 
 
 # Install necessary dependencies
