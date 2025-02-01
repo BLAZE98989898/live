@@ -19,9 +19,13 @@ yt-dlp --cookies /app/cookies.txt -f bestaudio -o "/app/audio.%(ext)s" "$VIDEO_U
 # Wait for downloads
 sleep 5
 
-# Get file names
-VIDEO_FILE=$(ls /app/video.* 2>/dev/null)
-AUDIO_FILE=$(ls /app/audio.* 2>/dev/null)
+# Find downloaded files dynamically
+VIDEO_FILE=$(find /app -type f -name "video.*" | head -n 1)
+AUDIO_FILE=$(find /app -type f -name "audio.*" | head -n 1)
+
+# Debugging: Show file names
+echo "Video file found: $VIDEO_FILE"
+echo "Audio file found: $AUDIO_FILE"
 
 # Check if both files exist
 if [ -z "$VIDEO_FILE" ] || [ -z "$AUDIO_FILE" ]; then
@@ -29,7 +33,7 @@ if [ -z "$VIDEO_FILE" ] || [ -z "$AUDIO_FILE" ]; then
   exit 1
 fi
 
-# Merge video and audio correctly
+# Merge video and audio
 echo "Merging video and audio..."
 ffmpeg -i "$VIDEO_FILE" -i "$AUDIO_FILE" -c:v libx264 -preset fast -b:v 2500k -c:a aac -b:a 128k -movflags +faststart -y /app/video.mp4
 
