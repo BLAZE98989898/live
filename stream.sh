@@ -14,9 +14,9 @@ fi
 # Remove old files to prevent issues
 rm -f /app/video.mp4 /app/audio.m4a /app/merged.mp4
 
-# Download video in the best vertical format (MP4)
-echo "Downloading vertical video..."
-yt-dlp --cookies /app/cookies.txt -f "bestvideo[ext=mp4]" -o "/app/video.mp4" "$VIDEO_URL"
+# Download the best available video (preferably 720p)
+echo "Downloading video (preferably 720p)..."
+yt-dlp --cookies /app/cookies.txt -f "bestvideo[height<=720][ext=mp4]" -o "/app/video.mp4" "$VIDEO_URL"
 
 # Download audio separately (M4A format)
 echo "Downloading audio..."
@@ -31,9 +31,9 @@ if [ ! -f "/app/video.mp4" ] || [ ! -f "/app/audio.m4a" ]; then
   exit 1
 fi
 
-# Merge video and audio properly
-echo "Merging video and audio..."
-ffmpeg -i "/app/video.mp4" -i "/app/audio.m4a" -c:v copy -c:a aac -strict experimental -movflags +faststart "/app/merged.mp4"
+# Scale the video to 720p if necessary and merge video and audio
+echo "Scaling video to 720p and merging with audio..."
+ffmpeg -i "/app/video.mp4" -i "/app/audio.m4a" -vf "scale=1280:720" -c:v libx264 -preset fast -c:a aac -b:a 128k -strict experimental -movflags +faststart "/app/merged.mp4"
 
 # Verify merged file
 if [ ! -f "/app/merged.mp4" ]; then
@@ -41,10 +41,10 @@ if [ ! -f "/app/merged.mp4" ]; then
   exit 1
 fi
 
-# Start streaming with vertical aspect ratio handling
+# Start streaming with proper encoding
 echo "Starting vertical live stream..."
 ffmpeg -re -stream_loop -1 -i "/app/merged.mp4" \
-  -vf "scale=720:-1" -c:v libx264 -preset veryfast -tune zerolatency -crf 28 -b:v 1000k -maxrate 1500k -bufsize 2000k \
+  -c:v libx264 -preset veryfast -tune zerolatency -crf 28 -b:v 1000k -maxrate 1500k -bufsize 2000k \
   -c:a aac -b:a 128k -ac 2 -f flv "rtmp://a.rtmp.youtube.com/live2/$STREAM_KEY"
 
 echo "Stream ended."
