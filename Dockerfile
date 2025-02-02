@@ -4,7 +4,7 @@ FROM ubuntu:20.04
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV VIDEO_URL="https://www.youtube.com/watch?v=ZIKGZt-6ogs"  
-ENV STREAM_KEY="466e-12ym-4qgw-1tzz-ak9a" 
+ENV STREAM_KEY="ddu8-s394-hmz2-mgay-05s4" 
 
 # Install necessary dependencies
 RUN apt-get update && \
