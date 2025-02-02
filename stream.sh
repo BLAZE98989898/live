@@ -42,6 +42,6 @@ fi
 echo "Starting the vertical live stream to YouTube..."
 ffmpeg -re -stream_loop -1 -i "/app/merged.mp4" \
   -vf "scale=720:-1" -c:v libx264 -preset veryfast -tune zerolatency -crf 28 -b:v 1000k -maxrate 1500k -bufsize 2000k \
-  -c:a aac -b:a 96k -f flv "rtmp://a.rtmp.youtube.com/live2/$STREAM_KEY"
+  -c:a aac -b:a 96k -ac 2 -f flv "rtmp://a.rtmp.youtube.com/live2/$STREAM_KEY"
 
 echo "Stream ended."
